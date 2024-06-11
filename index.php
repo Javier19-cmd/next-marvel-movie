@@ -1,8 +1,9 @@
 <?php
+include 'rate_limit.php';
 
 const API_URL = "https://whenisthenextmcufilm.com/api";
 
-# Inicializando una nueva sesión de cURL; ch = cURL handle
+// Inicializando una nueva sesión de cURL; ch = cURL handle
 $ch = curl_init(API_URL);
 
 // Inicializando lo que se quiere recibir el resultado de la petición y no darlo en pantalla.
