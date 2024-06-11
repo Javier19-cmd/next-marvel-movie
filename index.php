@@ -1,37 +1,20 @@
 <?php
-    if (!isset($name)) {
-        $name = "Pedro";
-    }
 
-    $age = 22;
+const API_URL = "https://whenisthenextmcufilm.com/api";
 
-    $output = "Hola, mi nombre es $name y tengo una edad de $age.";
+# Inicializando una nueva sesión de cURL; ch = cURL handle
+$ch = curl_init(API_URL);
 
-    // Variable global
-    define("PI", 3.14);
+// Inicializando lo que se quiere recibir el resultado de la petición y no darlo en pantalla.
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-    // Variable constante
-    const NOMBRE = "Miguel";
+/*
+    Ejecutando la petición y guardando el resultado
+*/
+$result = curl_exec($ch);
+$data = json_decode($result, true);
 
-    // Usamos condiciones antes de match
-    $outputAge = match (true) {
-        $age < 3 => "Eres un bebé",
-        $age < 18 => "Eres un niño",
-        $age < 60 => "Eres un adulto",
-        default => "Eres un adulto mayor"
-    };
-
-    // Array
-    $bestLanguages = ["PHP", "JavaScript", "Python", 1, 2];
-    $bestLanguages[] = "Java";
-
-    // Diccionario 
-    $person = [
-        "name" => "Miguel",
-        "age" => 78,
-        "isDev" => true,
-        "Languages"=> ["PHP", "JavaScript", "Python"],
-    ]
+curl_close($ch);
 ?>
 
 <!DOCTYPE html>
@@ -39,7 +22,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>La próxima película de Marvel</title>
     <style>
         :root {
             color-scheme: light dark;
@@ -47,47 +30,95 @@
 
         @media (prefers-color-scheme: light) {
             body {
-                background-color: white;
-                color: black;
+                background-color: #f0f0f0;
+                color: #333;
             }
         }
 
         @media (prefers-color-scheme: dark) {
             body {
-                background-color: black;
-                color: white;
+                background-color: #333;
+                color: #f0f0f0;
             }
         }
 
         body {
-            display: grid;
-            place-content: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             margin: 0;
-            height: 100vh;
+            padding: 20px;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .movie, .show {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .movie img, .show img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .movie p, .show p {
+            margin: 10px 0;
+        }
+
+        .movie h2, .show h2 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>
-        <?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>
-    </h1>
-    <p>
-        <?= htmlspecialchars($output, ENT_QUOTES, 'UTF-8'); ?>
-    </p>
-    <p>
-        Valor de PI: <?= htmlspecialchars(PI, ENT_QUOTES, 'UTF-8'); ?>
-    </p>
-    <p>
-        Nombre constante: <?= htmlspecialchars(NOMBRE, ENT_QUOTES, 'UTF-8'); ?>
-    </p>
-    <p>
-        <?= htmlspecialchars($outputAge, ENT_QUOTES, 'UTF-8'); ?>
-    </p>
-
-    <ul>
-        <?php foreach ($bestLanguages as $key => $language): ?>
-            <li> <?= $key . " " . $language ?> </li>
-        <?php endforeach; ?> 
-    </ul>
+    <h1>La próxima película de Marvel</h1>
+    <div class="container">
+        <?php if ($data): ?>
+            <div class="movie">
+                <h2><?= htmlspecialchars($data['title'], ENT_QUOTES, 'UTF-8'); ?></h2>
+                <img src="<?= htmlspecialchars($data['poster_url'], ENT_QUOTES, 'UTF-8'); ?>" alt="Poster">
+                <p><strong>Fecha de lanzamiento:</strong> <?= htmlspecialchars($data['release_date'], ENT_QUOTES, 'UTF-8'); ?></p>
+                <p><strong>Días hasta el estreno:</strong> <?= htmlspecialchars($data['days_until'], ENT_QUOTES, 'UTF-8'); ?></p>
+                <p><?= htmlspecialchars($data['overview'], ENT_QUOTES, 'UTF-8'); ?></p>
+            </div>
+            <?php if (isset($data['following_production'])): ?>
+                <div class="show">
+                    <h2>Próxima producción: <?= htmlspecialchars($data['following_production']['title'], ENT_QUOTES, 'UTF-8'); ?></h2>
+                    <img src="<?= htmlspecialchars($data['following_production']['poster_url'], ENT_QUOTES, 'UTF-8'); ?>" alt="Poster">
+                    <p><strong>Fecha de lanzamiento:</strong> <?= htmlspecialchars($data['following_production']['release_date'], ENT_QUOTES, 'UTF-8'); ?></p>
+                    <p><strong>Días hasta el estreno:</strong> <?= htmlspecialchars($data['following_production']['days_until'], ENT_QUOTES, 'UTF-8'); ?></p>
+                    <p><?= htmlspecialchars($data['following_production']['overview'], ENT_QUOTES, 'UTF-8'); ?></p>
+                </div>
+            <?php endif; ?>
+        <?php else: ?>
+            <p>No se pudo obtener la información de la próxima película de Marvel.</p>
+        <?php endif; ?>
+    </div>
 </body>
 </html>
